@@ -394,7 +394,7 @@ llvm::Value* ast::SysProcCall::SysProc_write(CodeGenContext& context, bool write
 
     std::vector<llvm::Constant *> indices;
     indices.push_back(zero); indices.push_back(zero);
-    auto var_ref = llvm::ConstantExpr::getGetElementPtr(format_string_var, indices);
+    auto var_ref = llvm::ConstantExpr::getGetElementPtr(format_string_var->getValueType() ,format_string_var, indices);
 
     printf_args.insert(printf_args.begin(), var_ref);
     auto call = llvm::CallInst::Create(CodeGenContext::printf, llvm::makeArrayRef(printf_args), "", context.currentBlock());
