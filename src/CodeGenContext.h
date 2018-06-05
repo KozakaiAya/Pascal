@@ -3,6 +3,8 @@
 
 #include <stack>
 #include <typeinfo>
+#include <memory>
+#include <llvm/ADT/STLExtras.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Type.h>
@@ -42,8 +44,8 @@ public:
     Function* currentFunction;
     Function *mainFunction;
     static llvm::Function* printf;
-    Module *module;
-    CodeGenContext() { module = new Module("main", ast::GlobalLLVMContext::getGlobalContext()); }
+    std::unique_ptr<Module> module;
+    CodeGenContext() { module = llvm::make_unique<Module>("main", ast::GlobalLLVMContext::getGlobalContext()); }
     void generateCode(ast::Program& root);
     GenericValue runCode();
     Value* getValue(std::string name){

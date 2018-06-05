@@ -2,8 +2,6 @@
 #include <vector>
 #include <map>
 
-#include <llvm/ADT/STLExtras.h>
-
 #include "ast.h"
 #include "CodeGenContext.h"
 #include "parser.hpp"
@@ -64,7 +62,7 @@ GenericValue CodeGenContext::runCode() {
 	std::cout << "Running begining...\n";
 	std::cout << 
 	"========================================" << std::endl;
-	ExecutionEngine *ee = EngineBuilder(llvm::make_unique<Module>(module)).create();
+	ExecutionEngine *ee = EngineBuilder(module).create();
 	std::vector<GenericValue> noargs;
 	GenericValue v = ee->runFunction(mainFunction, noargs);
 	std::cout << "========================================" << std::endl;
