@@ -177,7 +177,7 @@ llvm::Value* ast::AssignmentStmt::CodeGen(CodeGenContext& context) {
 
 llvm::Value* ast::ConstDecl::CodeGen(CodeGenContext& context) {
     std::cout << "Creating constant declaration " << this->name->name << std::endl;
-    auto alloc = new llvm::AllocaInst(this->type->toLLVMType(), this->name->name.c_str(), context.currentBlock());
+    auto alloc = new llvm::AllocaInst(this->type->toLLVMType(), 0, this->name->name.c_str(), context.currentBlock());
     context.insert(this->name->name, alloc);
     auto store = new llvm::StoreInst(this->val->CodeGen(context), alloc, false, context.currentBlock());
 
@@ -225,7 +225,7 @@ llvm::Value* ast::VarDecl::CodeGen(CodeGenContext& context) {
         }
     }
     else
-        alloc = new llvm::AllocaInst(this->type->toLLVMType(), this->name->name.c_str(), context.currentBlock());
+        alloc = new llvm::AllocaInst(this->type->toLLVMType(), 0, this->name->name.c_str(), context.currentBlock());
     context.insert(this->name->name,alloc);
     std::cout << "Creating variable declaration successfully " << this->name->name << std::endl;
     return alloc;
@@ -284,7 +284,7 @@ llvm::Value* ast::Routine::CodeGen(CodeGenContext& context) {
     // add function return variable
     if (this->isFunction()) {
         std::cout << "Creating function return value declaration" << std::endl;
-        auto alloc = new llvm::AllocaInst(this->return_type->toLLVMType(), this->routine_name->name.c_str(), context.currentBlock());
+        auto alloc = new llvm::AllocaInst(this->return_type->toLLVMType(), 0, this->routine_name->name.c_str(), context.currentBlock());
         // context.insert(this->routine_name->name) = alloc;
     }
     std::cout<<"func part suc!\n";    
