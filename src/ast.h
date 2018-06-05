@@ -2,7 +2,7 @@
 #define __AST_H__
 
 #include "llvm/IR/Value.h"
-#include "llvm/IR/instruction.h"
+#include "llvm/IR/Instruction.h"
 
 #include <string>
 #include <map>
