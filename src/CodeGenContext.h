@@ -44,8 +44,8 @@ public:
     Function* currentFunction;
     Function *mainFunction;
     static llvm::Function* printf;
-    std::unique_ptr<Module> module;
-    CodeGenContext() { module = llvm::make_unique<Module>("main", ast::GlobalLLVMContext::getGlobalContext()); }
+    Module* module;
+    CodeGenContext() { module = new Module("main", ast::GlobalLLVMContext::getGlobalContext()); }
     void generateCode(ast::Program& root);
     GenericValue runCode();
     Value* getValue(std::string name){
