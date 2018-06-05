@@ -47,7 +47,7 @@ void CodeGenContext::generateCode(ast::Program& root)
 	   to see if our program compiled properly
 	 */
 	std::cout << "Code is generated.\n";
-	PassManager pm;
+	legacy::PassManager pm;
 	pm.add(createPrintModulePass(outs()));
 	//pm.run(*module);
 
