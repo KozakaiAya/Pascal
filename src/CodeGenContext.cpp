@@ -10,8 +10,8 @@ llvm::Function* CodeGenContext::printf;
 std::vector<int> CodeGenContext::labels;
 llvm::Function* createPrintf(CodeGenContext& context) {
 	std::vector<llvm::Type *> printf_arg_types;
-    printf_arg_types.push_back(llvm::Type::getInt8PtrTy(llvm::getGlobalContext()));
-    auto printf_type = llvm::FunctionType::get(llvm::Type::getInt32Ty(getGlobalContext()), printf_arg_types, true);
+    printf_arg_types.push_back(llvm::Type::getInt8PtrTy(ast::GlobalLLVMContext::getGlobalContext()));
+    auto printf_type = llvm::FunctionType::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), printf_arg_types, true);
     auto func = llvm::Function::Create(printf_type, llvm::Function::ExternalLinkage, llvm::Twine("printf"), context.module);
     func->setCallingConv(llvm::CallingConv::C);
     return func;
@@ -25,10 +25,10 @@ void CodeGenContext::generateCode(ast::Program& root)
 	
 	/* Create the top level interpreter function to call as entry */
 	std::vector<Type*> argTypes;
-	FunctionType *ftype = FunctionType::get(Type::getVoidTy(getGlobalContext()), makeArrayRef(argTypes), false);
+	FunctionType *ftype = FunctionType::get(Type::getVoidTy(ast::GlobalLLVMContext::getGlobalContext()), makeArrayRef(argTypes), false);
 	// change GlobalValue::InternalLinkage into ExternalLinkage
 	mainFunction = Function::Create(ftype, GlobalValue::ExternalLinkage, "main", module);
-	BasicBlock *bblock = BasicBlock::Create(getGlobalContext(), "entry", mainFunction, 0);
+	BasicBlock *bblock = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "entry", mainFunction, 0);
 	
 	CodeGenContext::printf = createPrintf(*this);
 
@@ -36,10 +36,10 @@ void CodeGenContext::generateCode(ast::Program& root)
 	pushBlock(bblock);
 	currentFunction = mainFunction;
 	for (auto label:labels){
-		labelBlock[label]=BasicBlock::Create(getGlobalContext(), "label", mainFunction, 0);
+		labelBlock[label]=BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "label", mainFunction, 0);
 	}
 	root.CodeGen(*this); /* emit bytecode for the toplevel block */
-	ReturnInst::Create(getGlobalContext(), currentBlock());
+	ReturnInst::Create(ast::GlobalLLVMContext::getGlobalContext(), currentBlock());
 	popBlock();
 	// popBlock();
 	

@@ -21,13 +21,13 @@ using namespace std;
 llvm::Type* ast::TypeDecl::toLLVMType() {
     this->init();    
     switch(this->sys_name) {
-        case ast::TypeDecl::TypeName::integer:  return llvm::Type::getInt32Ty(llvm::getGlobalContext());    break;
-        case ast::TypeDecl::TypeName::real:     return llvm::Type::getDoubleTy(llvm::getGlobalContext());    break;
-        case ast::TypeDecl::TypeName::character:return llvm::Type::getInt8Ty(llvm::getGlobalContext());     break;
-        case ast::TypeDecl::TypeName::boolean:  return llvm::Type::getInt1Ty(llvm::getGlobalContext());     break;
-        case ast::TypeDecl::TypeName::range:    return llvm::Type::getInt32Ty(llvm::getGlobalContext());    break;
+        case ast::TypeDecl::TypeName::integer:  return llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext());    break;
+        case ast::TypeDecl::TypeName::real:     return llvm::Type::getDoubleTy(ast::GlobalLLVMContext::getGlobalContext());    break;
+        case ast::TypeDecl::TypeName::character:return llvm::Type::getInt8Ty(ast::GlobalLLVMContext::getGlobalContext());     break;
+        case ast::TypeDecl::TypeName::boolean:  return llvm::Type::getInt1Ty(ast::GlobalLLVMContext::getGlobalContext());     break;
+        case ast::TypeDecl::TypeName::range:    return llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext());    break;
         case ast::TypeDecl::TypeName::array:    return llvm::ArrayType::get(this->array_type->array_type->toLLVMType(), this->array_type->subscript->range_type->size()); break;
-        default:                                return llvm::Type::getVoidTy(llvm::getGlobalContext());     break;
+        default:                                return llvm::Type::getVoidTy(ast::GlobalLLVMContext::getGlobalContext());     break;
     }
 }
 
@@ -45,20 +45,20 @@ llvm::Value* ast::Identifier::CodeGen(CodeGenContext& context) {
 
 llvm::Value* ast::IntegerType::CodeGen(CodeGenContext& context) {
     std::cout << "Creating integer: " << val << std::endl;
-	return llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), val, true);
+	return llvm::ConstantInt::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), val, true);
 }
 llvm::Value* ast::RealType::CodeGen(CodeGenContext& context) {
     std::cout << "Creating real: " << val << std::endl;
-    return llvm::ConstantFP::get(llvm::getGlobalContext(), llvm::APFloat(val));
-	//return llvm::ConstantFP::get(llvm::Type::getFloatTy(llvm::getGlobalContext()), val, true);
+    return llvm::ConstantFP::get(ast::GlobalLLVMContext::getGlobalContext(), llvm::APFloat(val));
+	//return llvm::ConstantFP::get(llvm::Type::getFloatTy(ast::GlobalLLVMContext::getGlobalContext()), val, true);
 }
 llvm::Value* ast::CharType::CodeGen(CodeGenContext& context) {
     std::cout << "Creating char: " << val << std::endl;
-	return llvm::ConstantInt::get(llvm::Type::getInt8Ty(llvm::getGlobalContext()), val, true);
+	return llvm::ConstantInt::get(llvm::Type::getInt8Ty(ast::GlobalLLVMContext::getGlobalContext()), val, true);
 }
 llvm::Value* ast::BooleanType::CodeGen(CodeGenContext& context) {
     std::cout << "Creating boolean: " << val << std::endl;
-	return llvm::ConstantInt::get(llvm::Type::getInt1Ty(llvm::getGlobalContext()), val, true);
+	return llvm::ConstantInt::get(llvm::Type::getInt1Ty(ast::GlobalLLVMContext::getGlobalContext()), val, true);
 }
 llvm::Value* ast::RangeType::CodeGen(CodeGenContext& context) {
     if (this->isNameRange) {
@@ -203,11 +203,11 @@ llvm::Value* ast::VarDecl::CodeGen(CodeGenContext& context) {
             switch(sub_type) {
                 case ast::TypeDecl::TypeName::integer: 
                     DBMSG("into integer");
-                    ele_of_arr = llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0, true);
+                    ele_of_arr = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), 0, true);
                     break;
                 case ast::TypeDecl::TypeName::real: 
                     DBMSG("into real");
-                    ele_of_arr = llvm::ConstantFP::get(llvm::Type::getDoubleTy(llvm::getGlobalContext()), 0);
+                    ele_of_arr = llvm::ConstantFP::get(llvm::Type::getDoubleTy(ast::GlobalLLVMContext::getGlobalContext()), 0);
                     break;
             }
             for(int i = 0 ; i < this->type->array_type->subscript->range_type->size(); i++) {
@@ -220,7 +220,7 @@ llvm::Value* ast::VarDecl::CodeGen(CodeGenContext& context) {
             alloc = go;
         } else {
             DBVAR("decl global not a array");
-        auto go= new llvm::GlobalVariable(*context.module, this->type->toLLVMType(), false, llvm::GlobalValue::ExternalLinkage , llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0, true), this->name->name);
+        auto go= new llvm::GlobalVariable(*context.module, this->type->toLLVMType(), false, llvm::GlobalValue::ExternalLinkage , llvm::ConstantInt::get(llvm::Type::getInt32Ty(GlobalLLVMContext::getGlobalContext()), 0, true), this->name->name);
         alloc = go;
         }
     }
@@ -260,9 +260,9 @@ llvm::Value* ast::Routine::CodeGen(CodeGenContext& context) {
     std::vector<llvm::Type*> arg_types;
     for(auto it : *(this->argument_list))
         arg_types.push_back(it->type->toLLVMType()); 
-    auto f_type = llvm::FunctionType::get(this->isProcedure() ? llvm::Type::getVoidTy(llvm::getGlobalContext()) : this->return_type->toLLVMType(), llvm::makeArrayRef(arg_types), false);
+    auto f_type = llvm::FunctionType::get(this->isProcedure() ? llvm::Type::getVoidTy(ast::GlobalLLVMContext::getGlobalContext()) : this->return_type->toLLVMType(), llvm::makeArrayRef(arg_types), false);
     auto function = llvm::Function::Create(f_type, llvm::GlobalValue::InternalLinkage, this->routine_name->name.c_str(), context.module);
-    auto block = llvm::BasicBlock::Create(getGlobalContext(), "entry", function,NULL);
+    auto block = llvm::BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "entry", function,NULL);
     auto oldFunc = context.currentFunction;
     context.currentFunction = function;
     auto oldBlock = context.currentBlock();
@@ -306,11 +306,11 @@ llvm::Value* ast::Routine::CodeGen(CodeGenContext& context) {
     if (this->isFunction()) {
         std::cout << "Generating return value for function" << std::endl;
         auto load_ret = new llvm::LoadInst(context.getValue(this->routine_name->name), "", false, context.currentBlock());
-        llvm::ReturnInst::Create(llvm::getGlobalContext(), load_ret, context.currentBlock());
+        llvm::ReturnInst::Create(ast::GlobalLLVMContext::getGlobalContext(), load_ret, context.currentBlock());
     }
     else if(this->isProcedure()) {
         std::cout << "Generating return void for procedure" << std::endl;
-        llvm::ReturnInst::Create(llvm::getGlobalContext(), context.currentBlock());
+        llvm::ReturnInst::Create(ast::GlobalLLVMContext::getGlobalContext(), context.currentBlock());
         
     }
 
@@ -358,12 +358,12 @@ llvm::Value* ast::SysProcCall::SysProc_write(CodeGenContext& context, bool write
 // 
 // the isVarArg is for varied-length arguments function
 //
-    //auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm::getGlobalContext()), true);
+    //auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(ast::GlobalLLVMContext::getGlobalContext()), true);
        
 //llvm::Function * Create( llvm::FunctionType *Ty, llvm::GlobalValue::LinkageTypes Linkage, const llvm::Twine &N, llvm::Module *M )
     //auto write_func = llvm::Function::Create(func_type, llvm::Function::InternalLinkage, writeln ? llvm::Twine("writeln") : llvm::Twine("write"), context.module);
 
-    //auto block = llvm::BasicBlock::Create(llvm::getGlobalContext(), "entry", write_func, 0);
+    //auto block = llvm::BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "entry", write_func, 0);
     //context.pushBlock(block);
    
     std::string printf_format;
@@ -371,14 +371,14 @@ llvm::Value* ast::SysProcCall::SysProc_write(CodeGenContext& context, bool write
 
     for(auto arg : *argument_list) {
         auto arg_val = arg->CodeGen(context);
-        if (arg_val->getType() == llvm::Type::getInt32Ty(llvm::getGlobalContext())) {
+        if (arg_val->getType() == llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext())) {
             printf_format += "%d";     
             std::cout << "SysFuncCall write variable previous name" << arg_val->getName().str() << std::endl;
             printf_args.push_back(arg_val);
-        } else if (arg_val->getType()->isDoubleTy() /*== llvm::Type::getDoubleTy(llvm::getGlobalContext())*/) {
+        } else if (arg_val->getType()->isDoubleTy() /*== llvm::Type::getDoubleTy(ast::GlobalLLVMContext::getGlobalContext())*/) {
             printf_format += "%lf";
             printf_args.push_back(arg_val);
-        } else if (arg_val->getType() == llvm::Type::getInt8PtrTy(llvm::getGlobalContext())) {
+        } else if (arg_val->getType() == llvm::Type::getInt8PtrTy(ast::GlobalLLVMContext::getGlobalContext())) {
             assert("print string" == "not implemented");
         }
     }
@@ -386,11 +386,11 @@ llvm::Value* ast::SysProcCall::SysProc_write(CodeGenContext& context, bool write
     if (writeln)
         printf_format += "\n";
     
-    auto printf_format_const = llvm::ConstantDataArray::getString(llvm::getGlobalContext(), printf_format.c_str());
+    auto printf_format_const = llvm::ConstantDataArray::getString(ast::GlobalLLVMContext::getGlobalContext(), printf_format.c_str());
 
-    auto format_string_var = new llvm::GlobalVariable(*context.module, llvm::ArrayType::get(llvm::IntegerType::get(llvm::getGlobalContext(), 8), printf_format.size() + 1), true, llvm::GlobalValue::PrivateLinkage, printf_format_const, ".str");
+    auto format_string_var = new llvm::GlobalVariable(*context.module, llvm::ArrayType::get(llvm::IntegerType::get(ast::GlobalLLVMContext::getGlobalContext(), 8), printf_format.size() + 1), true, llvm::GlobalValue::PrivateLinkage, printf_format_const, ".str");
     
-    auto zero = llvm::Constant::getNullValue(llvm::IntegerType::getInt32Ty(llvm::getGlobalContext()));    
+    auto zero = llvm::Constant::getNullValue(llvm::IntegerType::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()));    
 
     std::vector<llvm::Constant *> indices;
     indices.push_back(zero); indices.push_back(zero);
@@ -398,7 +398,7 @@ llvm::Value* ast::SysProcCall::SysProc_write(CodeGenContext& context, bool write
 
     printf_args.insert(printf_args.begin(), var_ref);
     auto call = llvm::CallInst::Create(CodeGenContext::printf, llvm::makeArrayRef(printf_args), "", context.currentBlock());
-    //llvm::ReturnInst::Create(llvm::getGlobalContext(), block);
+    //llvm::ReturnInst::Create(ast::GlobalLLVMContext::getGlobalContext(), block);
     
     //context.popBlock();
     return call;
@@ -419,9 +419,9 @@ llvm::Value* ast::Expression::CodeGen(CodeGenContext& context) {}
 
 llvm::Value* ast::IfStmt::CodeGen(CodeGenContext& context) {
     Value* test = condition->CodeGen( context );
-    BasicBlock *btrue = BasicBlock::Create(getGlobalContext(), "thenStmt", context.currentFunction);
-    BasicBlock *bfalse = BasicBlock::Create(getGlobalContext(), "elseStmt", context.currentFunction);
-    BasicBlock *bmerge = BasicBlock::Create(getGlobalContext(), "mergeStmt", context.currentFunction);    
+    BasicBlock *btrue = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "thenStmt", context.currentFunction);
+    BasicBlock *bfalse = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "elseStmt", context.currentFunction);
+    BasicBlock *bmerge = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "mergeStmt", context.currentFunction);    
     auto ret = llvm::BranchInst::Create(btrue,bfalse,test,context.currentBlock());
 
     context.pushBlock(btrue);
@@ -439,9 +439,9 @@ llvm::Value* ast::IfStmt::CodeGen(CodeGenContext& context) {
     return ret;
 }
 llvm::Value* ast::WhileStmt::CodeGen(CodeGenContext& context) {
-    BasicBlock *sloop = BasicBlock::Create(getGlobalContext(), "startloop", context.currentFunction);
-    BasicBlock *bloop = BasicBlock::Create(getGlobalContext(), "loopStmt", context.currentFunction);
-    BasicBlock *bexit = BasicBlock::Create(getGlobalContext(), "eixtStmt", context.currentFunction);    
+    BasicBlock *sloop = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "startloop", context.currentFunction);
+    BasicBlock *bloop = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "loopStmt", context.currentFunction);
+    BasicBlock *bexit = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "eixtStmt", context.currentFunction);    
     llvm::BranchInst::Create(sloop,context.currentBlock());
     context.pushBlock(sloop);
     Value* test = condition->CodeGen( context );
@@ -458,8 +458,8 @@ llvm::Value* ast::WhileStmt::CodeGen(CodeGenContext& context) {
     return ret;
 }
 llvm::Value* ast::RepeatStmt::CodeGen(CodeGenContext& context) {
-    BasicBlock *bloop = BasicBlock::Create(getGlobalContext(), "loopStmt", context.currentFunction);
-    BasicBlock *bexit = BasicBlock::Create(getGlobalContext(), "eixtStmt", context.currentFunction);    
+    BasicBlock *bloop = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "loopStmt", context.currentFunction);
+    BasicBlock *bexit = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "eixtStmt", context.currentFunction);    
     llvm::BranchInst::Create(bloop,context.currentBlock());
 
     context.pushBlock(bloop);
@@ -473,9 +473,9 @@ llvm::Value* ast::RepeatStmt::CodeGen(CodeGenContext& context) {
     return ret;
 }
 llvm::Value* ast::ForStmt::CodeGen(CodeGenContext& context) {
-    BasicBlock *sloop = BasicBlock::Create(getGlobalContext(), "startloop", context.currentFunction);
-    BasicBlock *bloop = BasicBlock::Create(getGlobalContext(), "loopStmt", context.currentFunction);
-    BasicBlock *bexit = BasicBlock::Create(getGlobalContext(), "eixtStmt", context.currentFunction);    
+    BasicBlock *sloop = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "startloop", context.currentFunction);
+    BasicBlock *bloop = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "loopStmt", context.currentFunction);
+    BasicBlock *bexit = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "eixtStmt", context.currentFunction);    
 //  initial for   
     AssignmentStmt* initial = new AssignmentStmt(loopVar,startExp);
     initial->CodeGen(context);
@@ -523,13 +523,13 @@ llvm::Value* ast::CaseStmt::CodeGen(CodeGenContext& context){
     return ret;
 }
 llvm::Value* ast::SwitchStmt::CodeGen(CodeGenContext& context) {
-    BasicBlock* bexit = BasicBlock::Create(getGlobalContext(), "exit", context.currentFunction);
+    BasicBlock* bexit = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "exit", context.currentFunction);
 
     std::vector<BasicBlock *> bblocks;
     cout<<(*list)[1]->condition<<endl;
    
     for (int i=0;i<(list->size());i++){ 
-        auto bblock = BasicBlock::Create(getGlobalContext(), "caseStmt", context.currentFunction);
+        auto bblock = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "caseStmt", context.currentFunction);
         bblocks.push_back(bblock);
     }
 
@@ -538,7 +538,7 @@ llvm::Value* ast::SwitchStmt::CodeGen(CodeGenContext& context) {
         cout<<"in bblocks\n";
         cout<<(*list)[0]->condition<<"\n";
         auto con = new BinaryOperator(exp, BinaryOperator::OpType::eq,(*list)[i]->condition);
-        BasicBlock* bnext = BasicBlock::Create(getGlobalContext(), "next", context.currentFunction);
+        BasicBlock* bnext = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "next", context.currentFunction);
         llvm::BranchInst::Create(bblocks[i],bnext,con->CodeGen(context),context.currentBlock());
         context.pushBlock(bnext);
     }
@@ -560,7 +560,7 @@ llvm::Value* ast::SwitchStmt::CodeGen(CodeGenContext& context) {
 }
 llvm::Value* ast::GotoStmt::CodeGen(CodeGenContext& context){
     llvm::Value* test= (new BooleanType("true"))->CodeGen(context);
-    BasicBlock* bafter = BasicBlock::Create(getGlobalContext(), "afterGoto", context.currentFunction);
+    BasicBlock* bafter = BasicBlock::Create(ast::GlobalLLVMContext::getGlobalContext(), "afterGoto", context.currentFunction);
     auto ret = llvm::BranchInst::Create(context.labelBlock[label],context.currentBlock());
     context.pushBlock(bafter);
     return ret;
@@ -586,18 +586,18 @@ llvm::Value* ast::ArrayRef::getRef(CodeGenContext& context) {
     DBVAR(typeid(arr).name());
     DBMSG("Creating ArrayRef: array part is generated");
     
- //   auto a_type = llvm::ArrayType::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 9);
+ //   auto a_type = llvm::ArrayType::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), 9);
 //    auto arr_t = new llvm::AllocaInst(a_type, std::string("mem"), context.currentBlock());
 
 //    DBVAR(typeid(arr_t).name());
 //    auto vec = std::vector<Value *>();
-//    vec.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0));
-//    vec.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 1));
+//    vec.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), 0));
+//    vec.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), 1));
 //    auto ret = llvm::GetElementPtrInst::CreateInBounds(arr_t, llvm::ArrayRef<llvm::Value*>(vec), "ret", context.currentBlock());
 //    //return ret;
     auto idx_list = std::vector<llvm::Value*>();
-    idx_list.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0));
-    //idx_list.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(llvm::getGlobalContext()), 0));
+    idx_list.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), 0));
+    //idx_list.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ast::GlobalLLVMContext::getGlobalContext()), 0));
     DBVAR("before codgen");
     idx_list.push_back(index->CodeGen(context));
     DBVAR("after codgen");

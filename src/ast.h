@@ -2,7 +2,8 @@
 #define __AST_H__
 
 #include "llvm/IR/Value.h"
-#include "llvm/IR/instruction.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/LLVMContext.h"
 
 #include <string>
 #include <map>
@@ -39,6 +40,20 @@ class TypeConst;
 class CaseStmt;
 
 
+class GlobalLLVMContext
+{
+public:
+    static llvm::LLVMContext& getGlobalContext()
+    {
+        static llvm::LLVMContext instance;
+        return instance;
+    }
+private:
+    GlobalLLVMContext() {};
+public:
+    GlobalLLVMContext(GlobalLLVMContext const&) = delete;
+    void operator=(GlobalLLVMContext const&) = delete;
+};
 
 
 typedef std::vector<VarDecl *>      VarDeclList;

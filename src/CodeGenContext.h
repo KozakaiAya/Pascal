@@ -8,15 +8,16 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
-#include <llvm/PassManager.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/CallingConv.h>
 #include <llvm/IR/IRPrintingPasses.h>
 #include <llvm/IR/IRBuilder.h>
-#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
-#include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/ValueSymbolTable.h>
 
@@ -42,13 +43,13 @@ public:
     Function *mainFunction;
     static llvm::Function* printf;
     Module *module;
-    CodeGenContext() { module = new Module("main", getGlobalContext()); }
+    CodeGenContext() { module = new Module("main", ast::GlobalLLVMContext::getGlobalContext()); }
     void generateCode(ast::Program& root);
     GenericValue runCode();
     Value* getValue(std::string name){
         std::cout << "Start getValue for " << name << std::endl;
         //currentFunction->getValueSymbolTable().dump();
-        std::cout<<"found:"<<currentFunction->getValueSymbolTable().lookup(name)<<"\n";
+        std::cout<<"found:"<<currentFunction->getValueSymbolTable()->lookup(name)<<"\n";
         std::cout<<"main:"<<mainFunction<<"\n";
         std::cout<<"current:"<<currentFunction<<"\n";
         // CodeGenBlock *nowBlock= blocks.top();
@@ -65,7 +66,7 @@ public:
         llvm::Function* nowFunc = currentFunction;
         // std::cerr << "start dump" << std::endl;
         // nowFunc->getValueSymbolTable().dump();
-        if ((nowFunc->getValueSymbolTable().lookup(name))==NULL) {
+        if ((nowFunc->getValueSymbolTable()->lookup(name))==NULL) {
             
             if (module->getGlobalVariable(name)== NULL)
             {
@@ -89,7 +90,7 @@ public:
         //     }
         // }
         // std::cout<<nowFunc->getValueSymbolTable().lookup(name)<<"found\n";
-        return nowFunc->getValueSymbolTable().lookup(name);
+        return nowFunc->getValueSymbolTable()->lookup(name);
         // return nowBlock->locals[name];
     }
     ast::ConstValue* getConstValue(std::string name) {
