@@ -1,8 +1,13 @@
 SRC_DIR = src
 LLC = /usr/bin/llc-6.0
+CLANG = /usr/bin/clang-6.0
 
 all: compiler
 	 make ll llvm.pas
+
+codegen: 
+	make asm llvm.pas
+	make gen llvm.pas
 
 # Build the pascal compiler using the subdir makefile
 compiler:
@@ -21,7 +26,7 @@ asm: ll
 
 # Generate binary from .s file
 gen:
-	clang $(basename $(filter-out gen,$(MAKECMDGOALS))).s -o $(basename $(filter-out gen,$(MAKECMDGOALS)))
+	$(CLANG) $(basename $(filter-out gen,$(MAKECMDGOALS))).s -o $(basename $(filter-out gen,$(MAKECMDGOALS)))
 
 %:
 	@:

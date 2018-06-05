@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 
+#include <llvm/Transforms/Utils/Cloning.h>
+
 #include "ast.h"
 #include "CodeGenContext.h"
 #include "parser.hpp"
@@ -62,7 +64,14 @@ GenericValue CodeGenContext::runCode() {
 	std::cout << "Running begining...\n";
 	std::cout << 
 	"========================================" << std::endl;
-	ExecutionEngine *ee = EngineBuilder(std::unique_ptr<Module>(module)).create();
+	std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(module));
+    EngineBuilder eb(move(module_ptr));
+	eb.setEngineKind(llvm::EngineKind::JIT);
+	std::string error;
+    eb.setErrorStr(&error);
+    ExecutionEngine *ee = eb.create();
+	ee->finalizeObject();
+	std::cout << "Ready to run main" << std::endl;
 	std::vector<GenericValue> noargs;
 	GenericValue v = ee->runFunction(mainFunction, noargs);
 	std::cout << "========================================" << std::endl;
