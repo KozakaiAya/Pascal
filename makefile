@@ -36,5 +36,5 @@ clean:
 	$(RM) *.ll *.s
 
 clean-all: clean
-	$(RM) pascal
+	$(RM) pascal llvm
 	
