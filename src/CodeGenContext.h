@@ -47,7 +47,6 @@ public:
     Module* module;
     CodeGenContext() { module = new Module("main", ast::GlobalLLVMContext::getGlobalContext()); }
     void generateCode(ast::Program& root);
-    GenericValue runCode();
     Value* getValue(std::string name){
         std::cout << "Start getValue for " << name << std::endl;
         //currentFunction->getValueSymbolTable().dump();

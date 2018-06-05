@@ -30,14 +30,10 @@ int main(int argc, char** argv) {
 	cout << green("syntax check success!") << endl;
 	cout << ast_root << endl;
 	ast_root->print_node("", true, true);
-	InitializeNativeTarget();
-	InitializeNativeTargetAsmPrinter();
-	InitializeNativeTargetAsmParser();
 	CodeGenContext context;
 	//createCoreFunctions(context);
 	try {
 		context.generateCode(*ast_root);
-		//context.runCode();
 	} catch (const std::domain_error &de) {
 		cout << red(de.what()) << endl;		
 	} catch (const std::logic_error &le) {

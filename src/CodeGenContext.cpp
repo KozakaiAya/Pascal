@@ -58,23 +58,3 @@ void CodeGenContext::generateCode(ast::Program& root)
     module->print(llvm::errs(), nullptr);
     std::cout<<"code is gen~!~\n";
 }
-
-/* Executes the AST by running the main function */
-GenericValue CodeGenContext::runCode() {
-	std::cout << "Running begining...\n";
-	std::cout << 
-	"========================================" << std::endl;
-	std::unique_ptr<llvm::Module> module_ptr(llvm::CloneModule(module));
-    EngineBuilder eb(move(module_ptr));
-	eb.setEngineKind(llvm::EngineKind::JIT);
-	std::string error;
-    eb.setErrorStr(&error);
-    ExecutionEngine *ee = eb.create();
-	ee->finalizeObject();
-	std::cout << "Ready to run main" << std::endl;
-	std::vector<GenericValue> noargs;
-	GenericValue v = ee->runFunction(mainFunction, noargs);
-	std::cout << "========================================" << std::endl;
-	std::cout << "Running end.\n";
-	return v;
-}
