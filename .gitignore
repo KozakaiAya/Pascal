@@ -5,3 +5,4 @@ pascal.dSYM
 pascal.tab.c
 pascal.tab.h
 *.swp
+*.o

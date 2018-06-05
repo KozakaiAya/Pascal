@@ -53,7 +53,7 @@ void CodeGenContext::generateCode(ast::Program& root)
 
     // write IR to stderr
     std::cout<<"code is gen~~~\n";
-    module->dump();
+    module->print(llvm::errs(), nullptr);
     std::cout<<"code is gen~!~\n";
 }
 
